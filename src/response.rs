@@ -46,7 +46,7 @@ impl Display for ClientError {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum CollectHintCode {
     OutstandingTransaction,
@@ -61,7 +61,7 @@ pub enum CollectHintCode {
     StartFailed,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum CollectStatus {
     Pending,
@@ -69,7 +69,7 @@ pub enum CollectStatus {
     Complete,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub personal_number: PersonalNumer,
@@ -78,20 +78,20 @@ pub struct User {
     pub surname: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Device {
     pub ip_address: IpAddr,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Cert {
     pub not_berofe: String,
     pub not_after: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionData {
     pub user: User,
@@ -101,7 +101,7 @@ pub struct CompletionData {
     pub ocsp_response: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(tag = "status")]
 #[serde(rename_all = "camelCase")]
 pub enum CollectResponse {
@@ -113,6 +113,6 @@ pub enum CollectResponse {
     Complete { completion_data: CompletionData },
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CancelResponse {}
