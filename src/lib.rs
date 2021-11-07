@@ -128,6 +128,7 @@ impl Display for PersonalNumer {
         )
     }
 }
+
 #[cfg(feature = "rocket")]
 use rocket::request::FromParam;
 
@@ -137,6 +138,151 @@ impl<'a> FromParam<'a> for PersonalNumer {
 
     fn from_param(param: &'a str) -> Result<Self, Error> {
         Ok(PersonalNumer::parse(param)?)
+    }
+}
+
+#[derive(Debug)]
+pub enum Environment {
+    Test,
+    Production(Identity),
+}
+
+impl Environment {
+    const B64_ROOT_CA_TEST: &'static str = "MIIF0DCCA7igAwIBAgIIIhYaxu4khgAwDQYJKoZIhvcNAQENBQAwbDEkMCIGA1UECgwbRmluYW5zaWVsbCBJRC1UZWtuaWsgQklEIEFCMRowGAYDVQQLDBFJbmZyYXN0cnVjdHVyZSBDQTEoMCYGA1UEAwwfVGVzdCBCYW5rSUQgU1NMIFJvb3QgQ0EgdjEgVGVzdDAeFw0xNDExMjExMjM5MzFaFw0zNDEyMzExMjM5MzFaMGwxJDAiBgNVBAoMG0ZpbmFuc2llbGwgSUQtVGVrbmlrIEJJRCBBQjEaMBgGA1UECwwRSW5mcmFzdHJ1Y3R1cmUgQ0ExKDAmBgNVBAMMH1Rlc3QgQmFua0lEIFNTTCBSb290IENBIHYxIFRlc3QwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCAKWsJc/kV/0434d+Sqn19mIr85RZ/PgRFaUplSrnhuzAmaXihPLCEsd3Mh/YErygcxhQ/MAzi5OZ/anfuWSCwceRlQINtvlRPdMoeZtu29FsntK1Z5r2SYNdFwbRFb8WN9FsU0KvC5zVnuDMgs5dUZwTmdzX5ZdLP7pdgB3zhTnra5ORtkiWiUxJVev9keRgAo00ZHIRJ+xTfiSPdJc314maigVRQZdGKSyQcQMTWi1YLwd2zwOacNxleYf8xqKgkZsmkrc4Dp2mR5PkrnnKB6A7sAOSNatua7M86EgcGi9AaEyaRMkYJImbBfzaNlaBPyMSvwmBZzp2xKc9OD3U06ogV6CJjJL7hSuVc5x/2H04d+2I+DKwep6YBoVL9L81gRYRycqg+w+cTZ1TF/s6NC5YRKSeOCrLw3ombhjyyuPl8T/h9cpXt6m3y2xIVLYVzeDhaql3hdi6IpRh6rwkMhJ/XmOpbDinXb1fWdFOyQwqsXQWOEwKBYIkM6cPnuid7qwaxfP22hDgAolGMLY7TPKUPRwV+a5Y3VPl7h0YSK7lDyckTJdtBqI6d4PWQLnHakUgRQy69nZhGRtUtPMSJ7I4Qtt3B6AwDq+SJTggwtJQHeid0jPki6pouenhPQ6dZT532x16XD+WIcD2f//XzzOueS29KB7lt/wH5K6EuxwIDAQABo3YwdDAdBgNVHQ4EFgQUDY6XJ/FIRFX3dB4Wep3RVM84RXowDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBQNjpcn8UhEVfd0HhZ6ndFUzzhFejARBgNVHSAECjAIMAYGBCoDBAUwDgYDVR0PAQH/BAQDAgEGMA0GCSqGSIb3DQEBDQUAA4ICAQA5s59/Olio4svHXiKu7sPQRvrf4GfGB7hUjBGkYW2YOHTYnHavSqlBASHc8gGGwuc7v7+H+vmOfSLZfGDqxnBqeJx1H5E0YqEXtNqWG1JusIFa9xWypcONjg9v7IMnxxQzLYws4YwgPychpMzWY6B5hZsjUyKgB+1igxnfuaBueLPw3ZaJhcCL8gz6SdCKmQpX4VaAadS0vdMrBOmd826H+aDGZek1vMjuH11FfJoXY2jyDnlol7Z4BfHc011toWNMxojI7w+U4KKCbSxpWFVYITZ8WlYHcj+b2A1+dFQZFzQN+Y1Wx3VIUqSks6P7F5aF/l4RBngy08zkP7iLA/C7rm61xWxTmpj3p6SGfUBsrsBvBgfJQHD/Mx8U3iQCa0Vj1XPogE/PXQQq2vyWiAP662hD6og1/om3l1PJTBUyYXxqJO75ux8IWblUwAjsmTlF/Pcj8QbcMPXLMTgNQAgarV6guchjivYqb6Zrhq+Nh3JrF0HYQuMgExQ6VX8T56saOEtmlp6LSQi4HvKatCNfWUJGoYeT5SrcJ6snBy7XLMhQUCOXcBwKbNvX6aP79VA3yeJHZO7XParX7V9BB+jtf4tz/usmAT/+qXtHCCv9Xf4lv8jgdOnFfXbXuT8I4gz8uq8ElBlpbJntO6p/NY5a08E6C7FWVR+WJ5vZOP2HsA==";
+
+    const B64_ROOT_CA_PROD: &'static str = "MIIFvjCCA6agAwIBAgIITyTh/u1bExowDQYJKoZIhvcNAQENBQAwYjEkMCIGA1UECgwbRmluYW5zaWVsbCBJRC1UZWtuaWsgQklEIEFCMRowGAYDVQQLDBFJbmZyYXN0cnVjdHVyZSBDQTEeMBwGA1UEAwwVQmFua0lEIFNTTCBSb290IENBIHYxMB4XDTExMTIwNzEyMzQwN1oXDTM0MTIzMTEyMzQwN1owYjEkMCIGA1UECgwbRmluYW5zaWVsbCBJRC1UZWtuaWsgQklEIEFCMRowGAYDVQQLDBFJbmZyYXN0cnVjdHVyZSBDQTEeMBwGA1UEAwwVQmFua0lEIFNTTCBSb290IENBIHYxMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAwVA4snZiSFI3r64LvYu4mOsI42A9aLKEQGq4IZo257iqvPH82SMvgBJgE52kCx7gQMmZ7iSm39CEA19hlILh8JEJNTyJNxMxVDN6cfJP1jMHJeTES1TmVbWUqGyLpyT8LCJhC9Vq4W3t/O1svGJNOUQIQL4eAHSvWTVoalxzomJhOn97ENjXAt4BLb6sHfVBvmB5ReK0UfwpNACFM1RN8btEaDdWC4PfA72yzV3wK/cY5h2k1RM1s19PjoxnpJqrmn4qZmP4tN/nk2d7c4FErJAP0pnNsll1+JfkdMfiPD35+qcclpspzP2LpauQVyPbO21Nh+EPtr7+Iic2tkgz0g1kK0IL/foFrJ0Ievyr3Drm2uRnA0esZ45GOmZhE22mycEX9l7w9jrdsKtqs7N/T46hil4xBiGblXkqKNG6TvARk6XqOp3RtUvGGaKZnGllsgTvP38/nrSMlszNojrlbDnm16GGoRTQnwr8l+Yvbz/ev/e6wVFDjb52ZB0Z/KTfjXOl5cAJ7OCbODMWf8Na56OTlIkrk5NyU/uGzJFUQSvGdLHUipJ/sTZCbqNSZUwboI0oQNO/Ygez2J6zgWXGpDWiN4LGLDmBhB3T8CMQu9J/BcFvgjnUyhyim35kDpjVPC8nrSir5OkaYgGdYWdDuv1456lFNPNNQcdZdt5fcmMCAwEAAaN4MHYwHQYDVR0OBBYEFPgqsux5RtcrIhAVeuLBSgBuRDFVMA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAU+Cqy7HlG1ysiEBV64sFKAG5EMVUwEwYDVR0gBAwwCjAIBgYqhXBOAQQwDgYDVR0PAQH/BAQDAgEGMA0GCSqGSIb3DQEBDQUAA4ICAQAJOjUOS2GJPNrrrqf539aN1/EbUj5ZVRjG4wzVtX5yVqPGcRZjUQlNTcfOpwPoczKBnNX2OMF+Qm94bb+xXc/08AERqJJ3FPKu8oDNeK+Rv1X4nh95J4RHZcvl4AGhECmGMyhyCea0qZBFBsBqQR7oC9afYOxsSovaPqX31QMLULWUYoBKWWHLVVIoHjAmGtAzMkLwe0/lrVyApr9iyXWhVr+qYGmFGw1+rwmvDmmSLWNWawYgH4NYxTf8z5hBiDOdAgilvyiAF8Yl0kCKUB2fAPhRNYlEcN+UP/KL24h/pB+hZ9mvR0tM6nW3HVZaDrvRz4VihZ8vRi3fYnOAkNE6kZdrrdO7LdBc9yYkfQdTcy0N+Aw7q4TkQ8npomrVmTKaPhtGhA7VICyRNBVcvyoxr+CY7aRQyHn/C7n/jRsQYxs7uc+msq6jRS4HPK8olnF9usWZX6KY+8mweJiTE4uN4ZUUBUtt8WcXXDiK/bxEG2amjPcZ/b4LXwGCJb+aNWP4+iY6kBKrMANs01pLvtVjUS9RtRrY3cNEOhmKhO0qJSDXhsTcVtpbDr37UTSqQVw83dReiARPwGdURmmkaheH6z4k6qEUSXuFch0w53UAc+1aBXR1bgyFqMdy7Yxib2AYu7wnrHioDWqP6DTkUSUeMB/zqWPM/qx6QNNOcaOcjA==";
+
+    fn create_ca_root(&self) -> Certificate {
+        Certificate::from_pem(
+            &base64::decode(match self {
+                Self::Test => Self::B64_ROOT_CA_TEST,
+                Self::Production(_) => Self::B64_ROOT_CA_PROD,
+            })
+            .expect("Failed to decode root ca"),
+        )
+        .expect("Failed to create ca root certificate")
+    }
+
+    fn create_client(&self) -> reqwest::Client {
+        let identity: Identity = match &self {
+            Self::Test => Identity::from_pkcs12_der(
+                include_bytes!("cert/FPTestcert3_20200618.p12"),
+                "qwerty123",
+            )
+            .expect("Failed to create test identity"),
+            Self::Production(identity) => identity.to_owned(),
+        };
+
+        reqwest::Client::builder()
+            .add_root_certificate(self.create_ca_root())
+            .identity(identity.to_owned())
+            .build()
+            .expect("Failed to create HTTP client")
+    }
+
+    fn url(&self, path: &str) -> Url {
+        match &self {
+            Self::Test => Url::parse("https://appapi2.test.bankid.com/rp/v5.1/")
+                .expect("Invalid BaseURL for test environment"),
+            Self::Production(_) => Url::parse("https://appapi2.bankid.com/rp/v5.1/")
+                .expect("Invalid BaseURL for production environment"),
+        }
+        .join(path)
+        .expect("Failed to append path to base url")
+    }
+}
+
+#[derive(Debug)]
+pub struct Client {
+    reqwest_client: reqwest::Client,
+    environment: Environment,
+}
+
+impl Client {
+    #[inline]
+    pub fn for_test() -> Client {
+        let environment = Environment::Test;
+
+        Client {
+            reqwest_client: environment.create_client(),
+            environment,
+        }
+    }
+
+    #[inline]
+    pub fn for_production(identity: Identity) -> Client {
+        let environment = Environment::Production(identity);
+
+        Client {
+            reqwest_client: environment.create_client(),
+            environment,
+        }
+    }
+
+    pub async fn auth(
+        &self,
+        request: request::AuthRequest,
+    ) -> Result<response::OrderResponse, Error> {
+        let request = self
+            .reqwest_client
+            .post(self.environment.url("auth"))
+            .json(&request)
+            .build()?;
+
+        Ok(self.send(request).await?)
+    }
+
+    pub async fn collect(
+        &self,
+        request: request::CollectRequest,
+    ) -> Result<response::CollectResponse, Error> {
+        let request = self
+            .reqwest_client
+            .post(self.environment.url("collect"))
+            .json(&request)
+            .build()?;
+
+        Ok(self.send(request).await?)
+    }
+
+    pub async fn sign(
+        &self,
+        request: request::SignRequest,
+    ) -> Result<response::OrderResponse, Error> {
+        let request = self
+            .reqwest_client
+            .post(self.environment.url("sign"))
+            .json(&request)
+            .build()?;
+
+        Ok(self.send(request).await?)
+    }
+
+    pub async fn cancel(&self, request: request::CancelRequest) -> Result<(), Error> {
+        let request = self
+            .reqwest_client
+            .post(self.environment.url("cancel"))
+            .json(&request)
+            .build()?;
+
+        Ok(self
+            .send::<response::CancelResponse>(request)
+            .await
+            .map(|_| ())?)
+    }
+
+    async fn send<T>(&self, request: reqwest::Request) -> Result<T, Error>
+    where
+        T: DeserializeOwned,
+    {
+        let response = self.reqwest_client.execute(request).await?;
+
+        if response.status().is_success() {
+            Ok(response.json::<T>().await?)
+        } else {
+            let err = response.json::<response::ClientError>().await?;
+            Err(Error::ClientError(err))
+        }
     }
 }
 
@@ -226,150 +372,5 @@ mod tests {
             })
             .await
             .expect("Cancel request failed");
-    }
-}
-
-#[derive(Debug)]
-pub enum Environment {
-    Test,
-    Production(Identity),
-}
-
-impl Environment {
-    const B64_ROOT_CA_TEST: &'static str = "MIIF0DCCA7igAwIBAgIIIhYaxu4khgAwDQYJKoZIhvcNAQENBQAwbDEkMCIGA1UECgwbRmluYW5zaWVsbCBJRC1UZWtuaWsgQklEIEFCMRowGAYDVQQLDBFJbmZyYXN0cnVjdHVyZSBDQTEoMCYGA1UEAwwfVGVzdCBCYW5rSUQgU1NMIFJvb3QgQ0EgdjEgVGVzdDAeFw0xNDExMjExMjM5MzFaFw0zNDEyMzExMjM5MzFaMGwxJDAiBgNVBAoMG0ZpbmFuc2llbGwgSUQtVGVrbmlrIEJJRCBBQjEaMBgGA1UECwwRSW5mcmFzdHJ1Y3R1cmUgQ0ExKDAmBgNVBAMMH1Rlc3QgQmFua0lEIFNTTCBSb290IENBIHYxIFRlc3QwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCAKWsJc/kV/0434d+Sqn19mIr85RZ/PgRFaUplSrnhuzAmaXihPLCEsd3Mh/YErygcxhQ/MAzi5OZ/anfuWSCwceRlQINtvlRPdMoeZtu29FsntK1Z5r2SYNdFwbRFb8WN9FsU0KvC5zVnuDMgs5dUZwTmdzX5ZdLP7pdgB3zhTnra5ORtkiWiUxJVev9keRgAo00ZHIRJ+xTfiSPdJc314maigVRQZdGKSyQcQMTWi1YLwd2zwOacNxleYf8xqKgkZsmkrc4Dp2mR5PkrnnKB6A7sAOSNatua7M86EgcGi9AaEyaRMkYJImbBfzaNlaBPyMSvwmBZzp2xKc9OD3U06ogV6CJjJL7hSuVc5x/2H04d+2I+DKwep6YBoVL9L81gRYRycqg+w+cTZ1TF/s6NC5YRKSeOCrLw3ombhjyyuPl8T/h9cpXt6m3y2xIVLYVzeDhaql3hdi6IpRh6rwkMhJ/XmOpbDinXb1fWdFOyQwqsXQWOEwKBYIkM6cPnuid7qwaxfP22hDgAolGMLY7TPKUPRwV+a5Y3VPl7h0YSK7lDyckTJdtBqI6d4PWQLnHakUgRQy69nZhGRtUtPMSJ7I4Qtt3B6AwDq+SJTggwtJQHeid0jPki6pouenhPQ6dZT532x16XD+WIcD2f//XzzOueS29KB7lt/wH5K6EuxwIDAQABo3YwdDAdBgNVHQ4EFgQUDY6XJ/FIRFX3dB4Wep3RVM84RXowDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBQNjpcn8UhEVfd0HhZ6ndFUzzhFejARBgNVHSAECjAIMAYGBCoDBAUwDgYDVR0PAQH/BAQDAgEGMA0GCSqGSIb3DQEBDQUAA4ICAQA5s59/Olio4svHXiKu7sPQRvrf4GfGB7hUjBGkYW2YOHTYnHavSqlBASHc8gGGwuc7v7+H+vmOfSLZfGDqxnBqeJx1H5E0YqEXtNqWG1JusIFa9xWypcONjg9v7IMnxxQzLYws4YwgPychpMzWY6B5hZsjUyKgB+1igxnfuaBueLPw3ZaJhcCL8gz6SdCKmQpX4VaAadS0vdMrBOmd826H+aDGZek1vMjuH11FfJoXY2jyDnlol7Z4BfHc011toWNMxojI7w+U4KKCbSxpWFVYITZ8WlYHcj+b2A1+dFQZFzQN+Y1Wx3VIUqSks6P7F5aF/l4RBngy08zkP7iLA/C7rm61xWxTmpj3p6SGfUBsrsBvBgfJQHD/Mx8U3iQCa0Vj1XPogE/PXQQq2vyWiAP662hD6og1/om3l1PJTBUyYXxqJO75ux8IWblUwAjsmTlF/Pcj8QbcMPXLMTgNQAgarV6guchjivYqb6Zrhq+Nh3JrF0HYQuMgExQ6VX8T56saOEtmlp6LSQi4HvKatCNfWUJGoYeT5SrcJ6snBy7XLMhQUCOXcBwKbNvX6aP79VA3yeJHZO7XParX7V9BB+jtf4tz/usmAT/+qXtHCCv9Xf4lv8jgdOnFfXbXuT8I4gz8uq8ElBlpbJntO6p/NY5a08E6C7FWVR+WJ5vZOP2HsA==";
-
-    const B64_ROOT_CA_PROD: &'static str = "MIIFvjCCA6agAwIBAgIITyTh/u1bExowDQYJKoZIhvcNAQENBQAwYjEkMCIGA1UECgwbRmluYW5zaWVsbCBJRC1UZWtuaWsgQklEIEFCMRowGAYDVQQLDBFJbmZyYXN0cnVjdHVyZSBDQTEeMBwGA1UEAwwVQmFua0lEIFNTTCBSb290IENBIHYxMB4XDTExMTIwNzEyMzQwN1oXDTM0MTIzMTEyMzQwN1owYjEkMCIGA1UECgwbRmluYW5zaWVsbCBJRC1UZWtuaWsgQklEIEFCMRowGAYDVQQLDBFJbmZyYXN0cnVjdHVyZSBDQTEeMBwGA1UEAwwVQmFua0lEIFNTTCBSb290IENBIHYxMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAwVA4snZiSFI3r64LvYu4mOsI42A9aLKEQGq4IZo257iqvPH82SMvgBJgE52kCx7gQMmZ7iSm39CEA19hlILh8JEJNTyJNxMxVDN6cfJP1jMHJeTES1TmVbWUqGyLpyT8LCJhC9Vq4W3t/O1svGJNOUQIQL4eAHSvWTVoalxzomJhOn97ENjXAt4BLb6sHfVBvmB5ReK0UfwpNACFM1RN8btEaDdWC4PfA72yzV3wK/cY5h2k1RM1s19PjoxnpJqrmn4qZmP4tN/nk2d7c4FErJAP0pnNsll1+JfkdMfiPD35+qcclpspzP2LpauQVyPbO21Nh+EPtr7+Iic2tkgz0g1kK0IL/foFrJ0Ievyr3Drm2uRnA0esZ45GOmZhE22mycEX9l7w9jrdsKtqs7N/T46hil4xBiGblXkqKNG6TvARk6XqOp3RtUvGGaKZnGllsgTvP38/nrSMlszNojrlbDnm16GGoRTQnwr8l+Yvbz/ev/e6wVFDjb52ZB0Z/KTfjXOl5cAJ7OCbODMWf8Na56OTlIkrk5NyU/uGzJFUQSvGdLHUipJ/sTZCbqNSZUwboI0oQNO/Ygez2J6zgWXGpDWiN4LGLDmBhB3T8CMQu9J/BcFvgjnUyhyim35kDpjVPC8nrSir5OkaYgGdYWdDuv1456lFNPNNQcdZdt5fcmMCAwEAAaN4MHYwHQYDVR0OBBYEFPgqsux5RtcrIhAVeuLBSgBuRDFVMA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAU+Cqy7HlG1ysiEBV64sFKAG5EMVUwEwYDVR0gBAwwCjAIBgYqhXBOAQQwDgYDVR0PAQH/BAQDAgEGMA0GCSqGSIb3DQEBDQUAA4ICAQAJOjUOS2GJPNrrrqf539aN1/EbUj5ZVRjG4wzVtX5yVqPGcRZjUQlNTcfOpwPoczKBnNX2OMF+Qm94bb+xXc/08AERqJJ3FPKu8oDNeK+Rv1X4nh95J4RHZcvl4AGhECmGMyhyCea0qZBFBsBqQR7oC9afYOxsSovaPqX31QMLULWUYoBKWWHLVVIoHjAmGtAzMkLwe0/lrVyApr9iyXWhVr+qYGmFGw1+rwmvDmmSLWNWawYgH4NYxTf8z5hBiDOdAgilvyiAF8Yl0kCKUB2fAPhRNYlEcN+UP/KL24h/pB+hZ9mvR0tM6nW3HVZaDrvRz4VihZ8vRi3fYnOAkNE6kZdrrdO7LdBc9yYkfQdTcy0N+Aw7q4TkQ8npomrVmTKaPhtGhA7VICyRNBVcvyoxr+CY7aRQyHn/C7n/jRsQYxs7uc+msq6jRS4HPK8olnF9usWZX6KY+8mweJiTE4uN4ZUUBUtt8WcXXDiK/bxEG2amjPcZ/b4LXwGCJb+aNWP4+iY6kBKrMANs01pLvtVjUS9RtRrY3cNEOhmKhO0qJSDXhsTcVtpbDr37UTSqQVw83dReiARPwGdURmmkaheH6z4k6qEUSXuFch0w53UAc+1aBXR1bgyFqMdy7Yxib2AYu7wnrHioDWqP6DTkUSUeMB/zqWPM/qx6QNNOcaOcjA==";
-
-    fn create_ca_root(&self) -> Certificate {
-        Certificate::from_pem(
-            &base64::decode(match self {
-                Self::Test => Self::B64_ROOT_CA_TEST,
-                Self::Production(_) => Self::B64_ROOT_CA_PROD,
-            })
-            .expect("Failed to decode root ca"),
-        )
-        .expect("Failed to create ca root certificate")
-    }
-
-    fn create_client(&self) -> reqwest::Client {
-        let identity: Identity = match &self {
-            Self::Test => Identity::from_pkcs12_der(
-                include_bytes!("cert/FPTestcert3_20200618.p12"),
-                "qwerty123",
-            )
-            .expect("Failed to create test identity"),
-            Self::Production(identity) => identity.to_owned(),
-        };
-
-        reqwest::Client::builder()
-            .add_root_certificate(self.create_ca_root())
-            .identity(identity.to_owned())
-            .build()
-            .expect("Failed to create HTTP client")
-    }
-
-    fn base_url(&self, path: &str) -> Url {
-        match &self {
-            Self::Test => Url::parse("https://appapi2.test.bankid.com/rp/v5.1/")
-                .expect("Invalid BaseURL for test environment"),
-            Self::Production(_) => Url::parse("https://appapi2.bankid.com/rp/v5.1/")
-                .expect("Invalid BaseURL for production environment"),
-        }
-        .join(path)
-        .expect("Failed to append path to base url")
-    }
-}
-
-#[derive(Debug)]
-pub struct Client {
-    reqwest_client: reqwest::Client,
-    environment: Environment,
-}
-
-impl Client {
-    #[inline]
-    pub fn for_test() -> Client {
-        let environment = Environment::Test;
-
-        Client {
-            reqwest_client: environment.create_client(),
-            environment,
-        }
-    }
-
-    #[inline]
-    pub fn for_production(identity: Identity) -> Client {
-        let environment = Environment::Production(identity);
-
-        Client {
-            reqwest_client: environment.create_client(),
-            environment,
-        }
-    }
-
-    pub async fn auth(
-        &self,
-        request: request::AuthRequest,
-    ) -> Result<response::OrderResponse, Error> {
-        let request = self
-            .reqwest_client
-            .post(self.environment.base_url("auth"))
-            .json(&request)
-            .build()?;
-
-        Ok(self.send(request).await?)
-    }
-
-    pub async fn collect(
-        &self,
-        request: request::CollectRequest,
-    ) -> Result<response::CollectResponse, Error> {
-        let request = self
-            .reqwest_client
-            .post(self.environment.base_url("collect"))
-            .json(&request)
-            .build()?;
-
-        Ok(self.send(request).await?)
-    }
-
-    pub async fn sign(
-        &self,
-        request: request::SignRequest,
-    ) -> Result<response::OrderResponse, Error> {
-        let request = self
-            .reqwest_client
-            .post(self.environment.base_url("sign"))
-            .json(&request)
-            .build()?;
-
-        Ok(self.send(request).await?)
-    }
-
-    pub async fn cancel(&self, request: request::CancelRequest) -> Result<(), Error> {
-        let request = self
-            .reqwest_client
-            .post(self.environment.base_url("cancel"))
-            .json(&request)
-            .build()?;
-
-        Ok(self
-            .send::<response::CancelResponse>(request)
-            .await
-            .map(|_| ())?)
-    }
-
-    async fn send<T>(&self, request: reqwest::Request) -> Result<T, Error>
-    where
-        T: DeserializeOwned,
-    {
-        let response = self.reqwest_client.execute(request).await?;
-
-        if response.status().is_success() {
-            Ok(response.json::<T>().await?)
-        } else {
-            let err = response.json::<response::ClientError>().await?;
-            Err(Error::ClientError(err))
-        }
     }
 }
