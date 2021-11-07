@@ -1,6 +1,6 @@
 use std::{fmt::Display, net::IpAddr};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::PersonalNumer;
 
@@ -13,7 +13,7 @@ pub struct OrderResponse {
     pub qr_start_secret: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum ErrorCode {
     AlreadyInProgress,
@@ -33,7 +33,7 @@ impl Display for ErrorCode {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientError {
     pub error_code: ErrorCode,
