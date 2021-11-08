@@ -14,7 +14,7 @@ bankid = { version = "0.1.0" }
 ```rust
 use bankid::{
     Client, Endpoint, PersonalNumber,
-    request::{AuthRequest, CollectRequest, CancelRequest}
+    request::{AuthRequest}
 };
 use std::net::{IpAddr, Ipv4Addr};
 
@@ -29,13 +29,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         requirement: None
     }).await?;
 
-    let collect_response = client.collect(CollectRequest {
-        order_ref: auth_response.order_ref
-    }).await?;
+    let collect_response = client.collect(auth_response.order_ref).await?;
 
-    client.cancel(CancelRequest {
-        order_ref: auth_response.order_ref
-    }).await?;
+    client.cancel(auth_response.order_ref).await?;
 
     Ok(())
 }

@@ -47,12 +47,12 @@ pub struct SignRequest {
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct CollectRequest {
+pub(crate) struct CollectRequest {
     pub order_ref: Uuid,
 }
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct CancelRequest {
+pub(crate) struct CancelRequest {
     pub order_ref: Uuid,
 }

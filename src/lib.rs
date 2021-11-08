@@ -7,6 +7,7 @@ use core::fmt;
 use std::error::Error as StdError;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
+use uuid::Uuid;
 
 use regex::{Match, Regex};
 use reqwest::{self, Certificate, Identity as ReqwestIdentity, Url};
@@ -222,14 +223,11 @@ impl Client {
         Ok(self.send(request).await?)
     }
 
-    pub async fn collect(
-        &self,
-        request: request::CollectRequest,
-    ) -> Result<response::CollectResponse, Error> {
+    pub async fn collect(&self, order_ref: Uuid) -> Result<response::CollectResponse, Error> {
         let request = self
             .reqwest_client
             .post(self.endpoint.url("collect"))
-            .json(&request)
+            .json(&request::CollectRequest { order_ref })
             .build()?;
 
         Ok(self.send(request).await?)
@@ -248,11 +246,11 @@ impl Client {
         Ok(self.send(request).await?)
     }
 
-    pub async fn cancel(&self, request: request::CancelRequest) -> Result<(), Error> {
+    pub async fn cancel(&self, order_ref: Uuid) -> Result<(), Error> {
         let request = self
             .reqwest_client
             .post(self.endpoint.url("cancel"))
-            .json(&request)
+            .json(&request::CancelRequest { order_ref })
             .build()?;
 
         Ok(self
@@ -360,16 +358,12 @@ mod tests {
             .expect("Auth request failed");
 
         client
-            .collect(request::CollectRequest {
-                order_ref: auth_response.order_ref.to_owned(),
-            })
+            .collect(auth_response.order_ref.to_owned())
             .await
             .expect("Collect request failed");
 
         client
-            .cancel(request::CancelRequest {
-                order_ref: auth_response.order_ref.to_owned(),
-            })
+            .cancel(auth_response.order_ref.to_owned())
             .await
             .expect("Cancel request failed");
     }
