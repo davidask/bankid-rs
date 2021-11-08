@@ -1,9 +1,10 @@
 use serde::Serialize;
 use std::net::IpAddr;
+use uuid::Uuid;
 
-use crate::PersonalNumer;
+use crate::PersonalNumber;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Requirement {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -16,23 +17,23 @@ pub struct Requirement {
     auto_start_token_required: Option<bool>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthRequest {
     pub end_user_ip: IpAddr,
 
-    pub personal_number: PersonalNumer,
+    pub personal_number: PersonalNumber,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub requirement: Option<Requirement>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SignRequest {
     pub end_user_ip: IpAddr,
 
-    pub personal_number: PersonalNumer,
+    pub personal_number: PersonalNumber,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub requirement: Option<Requirement>,
@@ -44,14 +45,14 @@ pub struct SignRequest {
     pub user_non_visible_data: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectRequest {
-    pub order_ref: String,
+    pub order_ref: Uuid,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CancelRequest {
-    pub order_ref: String,
+    pub order_ref: Uuid,
 }

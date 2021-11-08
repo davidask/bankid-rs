@@ -1,16 +1,15 @@
-use std::{fmt::Display, net::IpAddr};
-
+use crate::PersonalNumber;
 use serde::{Deserialize, Serialize};
-
-use crate::PersonalNumer;
+use std::{fmt::Display, net::IpAddr};
+use uuid::Uuid;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderResponse {
-    pub order_ref: String,
-    pub auto_start_token: String,
-    pub qr_start_token: String,
-    pub qr_start_secret: String,
+    pub order_ref: Uuid,
+    pub auto_start_token: Uuid,
+    pub qr_start_token: Uuid,
+    pub qr_start_secret: Uuid,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -46,7 +45,7 @@ impl Display for ClientError {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum CollectHintCode {
     OutstandingTransaction,
@@ -69,29 +68,29 @@ pub enum CollectStatus {
     Complete,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
-    pub personal_number: PersonalNumer,
+    pub personal_number: PersonalNumber,
     pub name: String,
     pub given_name: String,
     pub surname: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Device {
     pub ip_address: IpAddr,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Cert {
     pub not_berofe: String,
     pub not_after: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionData {
     pub user: User,
@@ -101,7 +100,7 @@ pub struct CompletionData {
     pub ocsp_response: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(tag = "status")]
 #[serde(rename_all = "camelCase")]
 pub enum CollectResponse {

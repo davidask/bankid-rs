@@ -1,3 +1,8 @@
+#![deny(missing_debug_implementations)]
+#![deny(clippy::all)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(test, deny(warnings))]
+
 use core::fmt;
 use std::error::Error as StdError;
 use std::fmt::{Debug, Display};
@@ -39,15 +44,15 @@ impl fmt::Display for Error {
     }
 }
 
-#[derive(Debug)]
-pub struct PersonalNumer {
+#[derive(Debug, Clone, Copy)]
+pub struct PersonalNumber {
     year: u16,
     month: u8,
     day: u8,
     last_four_digits: u16,
 }
 
-impl Serialize for PersonalNumer {
+impl Serialize for PersonalNumber {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -56,70 +61,74 @@ impl Serialize for PersonalNumer {
     }
 }
 
-impl<'de> Deserialize<'de> for PersonalNumer {
+impl<'de> Deserialize<'de> for PersonalNumber {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        String::deserialize(deserializer).and_then(|v| match PersonalNumer::parse(v.as_str()) {
+        String::deserialize(deserializer).and_then(|v| match PersonalNumber::from_str(v.as_str()) {
             Ok(personal_number) => Ok(personal_number),
             Err(error) => Err(error).map_err(serde::de::Error::custom),
         })
     }
 }
 
-impl PersonalNumer {
+impl PersonalNumber {
     #[inline]
-    pub fn parse(value: &str) -> Result<PersonalNumer, Error> {
+    pub fn parse(s: &str) -> Result<Self, Error> {
         let re = Regex::new(r"^([19|20][0-9]{2}|[0-9]{4})([0-9]{2})([0-9]{2})[- ]?([0-9]{4})$")
             .expect("Invalid regular expression for PersonalNumber");
 
-        if !re.is_match(value) {
+        if !re.is_match(s) {
             return Err(Error::InvalidPersonalNumber(
                 "Personal number does not match expression",
             ));
         }
 
-        if let Some(captures) = re.captures(value) {
+        if let Some(captures) = re.captures(s) {
             if captures.len() != 5 {
                 return Err(Error::InvalidPersonalNumber(
                     "Unexpected capture length for RegEx matching personal number",
                 ));
             }
 
-            fn parse_part<'t, F: FromStr>(m: Option<Match<'t>>) -> Result<F, Error> {
+            fn parse_part<F: FromStr>(m: Option<Match<'_>>) -> Result<F, Error> {
                 match m {
                     Some(m) => match m.as_str().parse::<F>() {
                         Ok(val) => Ok(val),
-                        Err(_) => {
-                            return Err(Error::InvalidPersonalNumber(
-                                "Failed to parse match to numeric value",
-                            ))
-                        }
+                        Err(_) => Err(Error::InvalidPersonalNumber(
+                            "Failed to parse match to numeric value",
+                        )),
                     },
-                    None => {
-                        return Err(Error::InvalidPersonalNumber(
-                            "Expected match not found for part of personal number",
-                        ))
-                    }
+                    None => Err(Error::InvalidPersonalNumber(
+                        "Expected match not found for part of personal number",
+                    )),
                 }
             }
 
-            return Ok(PersonalNumer {
+            return Ok(PersonalNumber {
                 year: parse_part(captures.get(1))?,
                 month: parse_part(captures.get(2))?,
                 day: parse_part(captures.get(3))?,
                 last_four_digits: parse_part(captures.get(4))?,
             });
         } else {
-            return Err(Error::InvalidPersonalNumber(
+            Err(Error::InvalidPersonalNumber(
                 "No captures matching personal number",
-            ));
+            ))
         }
     }
 }
 
-impl Display for PersonalNumer {
+impl FromStr for PersonalNumber {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
+    }
+}
+
+impl Display for PersonalNumber {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -133,21 +142,21 @@ impl Display for PersonalNumer {
 use rocket::request::FromParam;
 
 #[cfg(feature = "rocket")]
-impl<'a> FromParam<'a> for PersonalNumer {
+impl<'a> FromParam<'a> for PersonalNumber {
     type Error = Error;
 
     fn from_param(param: &'a str) -> Result<Self, Error> {
-        Ok(PersonalNumer::parse(param)?)
+        Ok(PersonalNumber::parse(param)?)
     }
 }
 
 #[derive(Debug)]
-pub enum Environment {
+pub enum Endpoint {
     Test,
     Production(Identity),
 }
 
-impl Environment {
+impl Endpoint {
     fn create_ca_root(&self) -> Certificate {
         Certificate::from_pem(match self {
             Self::Test => include_bytes!("./cert/ca-test.pem"),
@@ -168,7 +177,7 @@ impl Environment {
 
         reqwest::Client::builder()
             .add_root_certificate(self.create_ca_root())
-            .identity(identity.to_owned())
+            .identity(identity)
             .build()
             .expect("Failed to create HTTP client")
     }
@@ -176,9 +185,9 @@ impl Environment {
     fn url(&self, path: &str) -> Url {
         match &self {
             Self::Test => Url::parse("https://appapi2.test.bankid.com/rp/v5.1/")
-                .expect("Invalid BaseURL for test environment"),
+                .expect("Invalid BaseURL for test endpoint"),
             Self::Production(_) => Url::parse("https://appapi2.bankid.com/rp/v5.1/")
-                .expect("Invalid BaseURL for production environment"),
+                .expect("Invalid BaseURL for production endpoint"),
         }
         .join(path)
         .expect("Failed to append path to base url")
@@ -188,27 +197,15 @@ impl Environment {
 #[derive(Debug)]
 pub struct Client {
     reqwest_client: reqwest::Client,
-    environment: Environment,
+    endpoint: Endpoint,
 }
 
 impl Client {
     #[inline]
-    pub fn for_test() -> Client {
-        let environment = Environment::Test;
-
+    pub fn new(endpoint: Endpoint) -> Client {
         Client {
-            reqwest_client: environment.create_client(),
-            environment,
-        }
-    }
-
-    #[inline]
-    pub fn for_production(identity: Identity) -> Client {
-        let environment = Environment::Production(identity);
-
-        Client {
-            reqwest_client: environment.create_client(),
-            environment,
+            reqwest_client: endpoint.create_client(),
+            endpoint,
         }
     }
 
@@ -218,7 +215,7 @@ impl Client {
     ) -> Result<response::OrderResponse, Error> {
         let request = self
             .reqwest_client
-            .post(self.environment.url("auth"))
+            .post(self.endpoint.url("auth"))
             .json(&request)
             .build()?;
 
@@ -231,7 +228,7 @@ impl Client {
     ) -> Result<response::CollectResponse, Error> {
         let request = self
             .reqwest_client
-            .post(self.environment.url("collect"))
+            .post(self.endpoint.url("collect"))
             .json(&request)
             .build()?;
 
@@ -244,7 +241,7 @@ impl Client {
     ) -> Result<response::OrderResponse, Error> {
         let request = self
             .reqwest_client
-            .post(self.environment.url("sign"))
+            .post(self.endpoint.url("sign"))
             .json(&request)
             .build()?;
 
@@ -254,7 +251,7 @@ impl Client {
     pub async fn cancel(&self, request: request::CancelRequest) -> Result<(), Error> {
         let request = self
             .reqwest_client
-            .post(self.environment.url("cancel"))
+            .post(self.endpoint.url("cancel"))
             .json(&request)
             .build()?;
 
@@ -279,15 +276,25 @@ impl Client {
     }
 }
 
+#[cfg(doctest)]
+#[macro_use]
+extern crate doc_comment;
+
+#[cfg(doctest)]
+doctest!("../README.md");
+
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr};
+    use std::{
+        net::{IpAddr, Ipv4Addr},
+        str::FromStr,
+    };
 
-    use crate::{request, Client, PersonalNumer};
+    use crate::{request, Client, Endpoint, PersonalNumber};
 
     #[test]
     fn test_pno_to_string() {
-        let result = PersonalNumer {
+        let result = PersonalNumber {
             year: 1999,
             month: 1,
             day: 3,
@@ -298,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_pno_parse() {
-        let result = PersonalNumer::parse("198710101234").expect("Parsing failed");
+        let result = PersonalNumber::from_str("198710101234").expect("Parsing failed");
         assert_eq!(result.year, 1987);
         assert_eq!(result.month, 10);
         assert_eq!(result.day, 10);
@@ -310,7 +317,7 @@ mod tests {
         fn case(year: u16, month: u8, day: u8, lfd: u16) {
             let raw = format!(r#""{:04}{:02}{:02}{:04}""#, year, month, day, lfd);
 
-            let pno: PersonalNumer =
+            let pno: PersonalNumber =
                 serde_json::from_str(raw.as_str()).expect("Failed to deserialize pno");
 
             assert_eq!(pno.year, year);
@@ -336,12 +343,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_integration() {
-        let client = Client::for_test();
+        let client = Client::new(Endpoint::Test);
 
         let auth_response = client
             .auth(request::AuthRequest {
                 end_user_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
-                personal_number: PersonalNumer {
+                personal_number: PersonalNumber {
                     year: 1987,
                     month: 10,
                     day: 10,
