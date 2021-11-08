@@ -4,7 +4,7 @@ A [BankID](https://www.bankid.com) client for Rust based on [reqwest](https://gi
 
 ## Example
 
-This package is uses [Tokio](https://tokio.rs). Add `bankid` to your `Cargo.toml`dependencies.
+This package is uses [Tokio](https://tokio.rs). Add `bankid` to your `Cargo.toml` dependencies.
 
 ```toml
 [dependencies]

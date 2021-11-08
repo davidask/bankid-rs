@@ -86,7 +86,7 @@ pub struct Device {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Cert {
-    pub not_berofe: String,
+    pub not_before: String,
     pub not_after: String,
 }
 
