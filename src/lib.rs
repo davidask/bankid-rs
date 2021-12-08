@@ -75,7 +75,6 @@ impl<'de> Deserialize<'de> for PersonalNumber {
 }
 
 impl PersonalNumber {
-    #[inline]
     pub fn parse(s: &str) -> Result<Self, Error> {
         let re = Regex::new(r"^([19|20][0-9]{2}|[0-9]{4})([0-9]{2})([0-9]{2})[- ]?([0-9]{4})$")
             .expect("Invalid regular expression for PersonalNumber");
@@ -139,18 +138,6 @@ impl Display for PersonalNumber {
     }
 }
 
-#[cfg(feature = "rocket")]
-use rocket::request::FromParam;
-
-#[cfg(feature = "rocket")]
-impl<'a> FromParam<'a> for PersonalNumber {
-    type Error = Error;
-
-    fn from_param(param: &'a str) -> Result<Self, Error> {
-        Ok(PersonalNumber::parse(param)?)
-    }
-}
-
 #[derive(Debug)]
 pub enum Endpoint {
     Test,
@@ -170,6 +157,7 @@ impl Endpoint {
         let identity: Identity = match &self {
             Self::Test => Identity::from_pkcs12_der(
                 include_bytes!("cert/FPTestcert3_20200618.p12"),
+                // This is a well known password, found in the BankID relying party guidelines.
                 "qwerty123",
             )
             .expect("Failed to create test identity"),
@@ -202,7 +190,6 @@ pub struct Client {
 }
 
 impl Client {
-    #[inline]
     pub fn new(endpoint: Endpoint) -> Client {
         Client {
             reqwest_client: endpoint.create_client(),
@@ -283,10 +270,7 @@ doctest!("../README.md");
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        net::{IpAddr, Ipv4Addr},
-        str::FromStr,
-    };
+    use std::net::{IpAddr, Ipv4Addr};
 
     use crate::{request, Client, Endpoint, PersonalNumber};
 
@@ -303,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_pno_parse() {
-        let result = PersonalNumber::from_str("198710101234").expect("Parsing failed");
+        let result = PersonalNumber::parse("198710101234").expect("Parsing failed");
         assert_eq!(result.year, 1987);
         assert_eq!(result.month, 10);
         assert_eq!(result.day, 10);
@@ -346,12 +330,12 @@ mod tests {
         let auth_response = client
             .auth(request::AuthRequest {
                 end_user_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
-                personal_number: PersonalNumber {
+                personal_number: Some(PersonalNumber {
                     year: 1987,
                     month: 10,
                     day: 10,
                     last_four_digits: 0101,
-                },
+                }),
                 requirement: None,
             })
             .await

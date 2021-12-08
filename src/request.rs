@@ -6,6 +6,13 @@ use crate::PersonalNumber;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub enum CardReaderClass {
+    Class1,
+    Class2,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Requirement {
     #[serde(skip_serializing_if = "Option::is_none")]
     certificate_policies: Option<Vec<String>>,
@@ -15,6 +22,12 @@ pub struct Requirement {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_start_token_required: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issuer_cn: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    card_reader: Option<CardReaderClass>,
 }
 
 #[derive(Serialize, Debug)]
@@ -22,7 +35,7 @@ pub struct Requirement {
 pub struct AuthRequest {
     pub end_user_ip: IpAddr,
 
-    pub personal_number: PersonalNumber,
+    pub personal_number: Option<PersonalNumber>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub requirement: Option<Requirement>,
@@ -33,7 +46,7 @@ pub struct AuthRequest {
 pub struct SignRequest {
     pub end_user_ip: IpAddr,
 
-    pub personal_number: PersonalNumber,
+    pub personal_number: Option<PersonalNumber>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub requirement: Option<Requirement>,

@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let auth_response = client.auth(AuthRequest {
         end_user_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
-        personal_number: PersonalNumber::parse("198710105080")?,
+        personal_number: Some(PersonalNumber::parse("198710105080")?),
         requirement: None
     }).await?;
 

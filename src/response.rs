@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, net::IpAddr};
 use uuid::Uuid;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderResponse {
     pub order_ref: Uuid,
