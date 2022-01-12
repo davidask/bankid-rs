@@ -24,7 +24,10 @@ pub type Identity = ReqwestIdentity;
 pub enum Error {
     InvalidPersonalNumber(&'static str),
     ReqwestError(reqwest::Error),
-    ClientError(response::ClientError),
+    ClientError {
+        status: reqwest::StatusCode,
+        error: response::ClientError,
+    },
 }
 
 impl StdError for Error {}
@@ -40,7 +43,9 @@ impl fmt::Display for Error {
         match self {
             Self::InvalidPersonalNumber(reason) => write!(f, "Invalid personal number {}", reason),
             Self::ReqwestError(err) => write!(f, "Request failed: {}", err),
-            Self::ClientError(err) => write!(f, "Client error: {}", err),
+            Self::ClientError { status, error } => {
+                write!(f, "Client error: {}, status {}", error, status)
+            }
         }
     }
 }
@@ -252,11 +257,13 @@ impl Client {
     {
         let response = self.reqwest_client.execute(request).await?;
 
-        if response.status().is_success() {
+        let status = response.status();
+
+        if status.is_success() {
             Ok(response.json::<T>().await?)
         } else {
-            let err = response.json::<response::ClientError>().await?;
-            Err(Error::ClientError(err))
+            let error = response.json::<response::ClientError>().await?;
+            Err(Error::ClientError { status, error })
         }
     }
 }
