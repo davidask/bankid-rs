@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, net::IpAddr};
 use uuid::Uuid;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderResponse {
     pub order_ref: Uuid,
@@ -12,7 +12,7 @@ pub struct OrderResponse {
     pub qr_start_secret: Uuid,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum ErrorCode {
     AlreadyInProgress,
@@ -32,7 +32,7 @@ impl Display for ErrorCode {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientError {
     pub error_code: ErrorCode,
@@ -45,7 +45,7 @@ impl Display for ClientError {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum CollectHintCode {
     OutstandingTransaction,
@@ -60,7 +60,7 @@ pub enum CollectHintCode {
     StartFailed,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum CollectStatus {
     Pending,
@@ -68,7 +68,7 @@ pub enum CollectStatus {
     Complete,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub personal_number: PersonalNumber,
@@ -77,20 +77,20 @@ pub struct User {
     pub surname: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Device {
     pub ip_address: IpAddr,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Cert {
     pub not_before: String,
     pub not_after: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionData {
     pub user: User,
@@ -100,7 +100,7 @@ pub struct CompletionData {
     pub ocsp_response: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(tag = "status")]
 #[serde(rename_all = "camelCase")]
 pub enum CollectResponse {
@@ -112,6 +112,6 @@ pub enum CollectResponse {
     Complete { completion_data: CompletionData },
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CancelResponse {}
