@@ -35,6 +35,7 @@ pub struct Requirement {
 pub struct AuthRequest {
     pub end_user_ip: IpAddr,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub personal_number: Option<PersonalNumber>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
