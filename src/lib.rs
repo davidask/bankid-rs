@@ -7,7 +7,6 @@ use core::fmt;
 use std::error::Error as StdError;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
-use uuid::Uuid;
 
 use regex::{Match, Regex};
 use reqwest::{self, Certificate, Identity as ReqwestIdentity, Url};
@@ -19,6 +18,7 @@ pub mod request;
 pub mod response;
 
 pub type Identity = ReqwestIdentity;
+pub type Uuid = uuid::Uuid;
 
 #[derive(Debug)]
 pub enum Error {
