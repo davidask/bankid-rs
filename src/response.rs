@@ -60,7 +60,7 @@ pub enum CollectHintCode {
     StartFailed,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum CollectStatus {
     Pending,
