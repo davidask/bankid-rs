@@ -105,11 +105,11 @@ pub struct CompletionData {
 #[serde(rename_all = "camelCase")]
 pub enum CollectResponse {
     #[serde(rename_all = "camelCase")]
-    Pending { hint_code: CollectHintCode },
+    Pending { hint_code: CollectHintCode, order_ref: Uuid },
     #[serde(rename_all = "camelCase")]
     Failed { hint_code: CollectHintCode },
     #[serde(rename_all = "camelCase")]
-    Complete { completion_data: CompletionData },
+    Complete { completion_data: CompletionData, order_ref: Uuid },
 }
 
 #[derive(Deserialize, Debug, Clone)]
